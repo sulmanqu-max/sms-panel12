@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 
 LOGIN_URL = "http://51.75.55.16/ints/login"
-DASHBOARD_URL = "http://51.75.55.16/ints/agent/SMSDashboard"
+DASHBOARD_URL = "http://51.75.55.16/ints/agent/MySMSNumbers"  # اصلی لائیو نمبرز کا درست لنک
 USERNAME = "Sulman555"
 PASSWORD = "sulman123##"
 
@@ -20,7 +20,7 @@ def run_bot():
         resp = session.get(LOGIN_URL)
         soup = BeautifulSoup(resp.text, 'html.parser')
         
-        # Parse Math Captcha
+        # Parse Math Captcha dynamically
         page_text = soup.get_text()
         captcha_match = re.search(r'What is\s*(\d+)\s*([\+\-\*])\s*(\d+)', page_text)
         
@@ -37,7 +37,7 @@ def run_bot():
         else:
             print("Captcha pattern not found!")
 
-        # Gather all form inputs
+        # Gather form inputs including hidden tokens
         login_data = {
             "username": USERNAME,
             "password": PASSWORD,
@@ -56,46 +56,56 @@ def run_bot():
         login_resp = session.post(LOGIN_URL, data=login_data, allow_redirects=True)
         print(f"Login Response Final URL: {login_resp.url}")
 
-        # Check if login failed (if URL still contains login or error text exists)
         if "login" in login_resp.url or "Error" in login_resp.text:
-            print("Login failed! Check credentials or captcha parsing.")
-            # Let's save debug state
-            error_data = [{"phone": "Login Failed", "client": USERNAME, "service": "Auth Error", "otp": "Check Captcha/Pass", "time": time.strftime("%I:%M %p")}]
+            print("Login failed!")
+            error_data = [{"phone": "Login Failed", "client": USERNAME, "service": "Auth Error", "otp": "Check Password", "time": time.strftime("%I:%M %p")}]
             with open('data.json', 'w', encoding='utf-8') as f:
                 json.dump(error_data, f, ensure_ascii=False, indent=4)
             return
 
-        # Fetch SMS / Number Dashboard
-        print("Fetching Dashboard data...")
+        # Fetch MySMSNumbers Page
+        print("Fetching MySMSNumbers data...")
         dash_resp = session.get(DASHBOARD_URL)
         dash_soup = BeautifulSoup(dash_resp.text, 'html.parser')
         
         extracted_data = []
         
-        # Find rows in any table
+        # Parse table rows for active numbers
         for table in dash_soup.find_all('table'):
             for row in table.find_all('tr'):
                 cols = row.find_all(['td', 'th'])
                 cols_text = [ele.text.strip() for ele in cols]
-                if len(cols_text) >= 2 and "Phone" not in cols_text[0] and "Date" not in cols_text[0]:
-                    extracted_data.append({
-                        "phone": cols_text[0],
-                        "client": cols_text[1] if len(cols_text) > 1 else USERNAME,
-                        "service": cols_text[2] if len(cols_text) > 2 else "WhatsApp Live",
-                        "otp": cols_text[3] if len(cols_text) > 3 else "Waiting...",
-                        "time": time.strftime("%I:%M %p")
-                    })
+                
+                if len(cols_text) >= 3:
+                    # Look for columns containing phone number digits
+                    potential_number = ""
+                    service_name = "WhatsApp Live"
+                    for text in cols_text:
+                        clean_txt = re.sub(r'\D', '', text)
+                        if len(clean_txt) >= 10:  # Valid phone number length
+                            potential_number = clean_txt
+                            break
+                        if "Algeria" in text or "Target" in text:
+                            service_name = text.split('\n')[0]
+                    
+                    if potential_number:
+                        extracted_data.append({
+                            "phone": f"+{potential_number}",
+                            "client": USERNAME,
+                            "service": service_name,
+                            "otp": "Waiting for OTP...",
+                            "time": time.strftime("%I:%M %p")
+                        })
         
         if not extracted_data:
-            print("No table data found, extracting text blocks...")
-            # Try to grab whatever numbers are visible on dashboard
+            print("No numbers found in tables, adding default status...")
             extracted_data = [
-                {"phone": "Panel Connected", "client": USERNAME, "service": "Live SMS", "otp": "No Active SMS Found", "time": time.strftime("%I:%M %p")}
+                {"phone": "No Active Numbers", "client": USERNAME, "service": "System", "otp": "Check Panel", "time": time.strftime("%I:%M %p")}
             ]
 
         with open('data.json', 'w', encoding='utf-8') as f:
             json.dump(extracted_data, f, ensure_ascii=False, indent=4)
-        print("data.json updated successfully!")
+        print("data.json updated with live numbers successfully!")
 
     except Exception as e:
         print(f"Error occurred: {e}")
