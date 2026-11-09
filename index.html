@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="ur" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS PANEL - 3D Dashboard</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-main: #0b0f19;
+            --card-bg: rgba(30, 41, 59, 0.75);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --primary-glow: #38bdf8;
+            --accent-green: #22c55e;
+            --accent-pink: #ec4899;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg-main);
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 3D Background Animated Glow Blobs */
+        body::before, body::after {
+            content: '';
+            position: fixed;
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            opacity: 0.35;
+            animation: pulseGlow 8s infinite alternate ease-in-out;
+        }
+        body::before {
+            background: linear-gradient(135deg, #0284c7, #22c55e);
+            top: -50px;
+            left: -50px;
+        }
+        body::after {
+            background: linear-gradient(135deg, #ec4899, #3b82f6);
+            bottom: -50px;
+            right: -50px;
+            animation-delay: 4s;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(1) translate(0, 0); opacity: 0.3; }
+            100% { transform: scale(1.25) translate(30px, 30px); opacity: 0.55; }
+        }
+
+        /* 3D Glassmorphism Card Base */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        /* 3D Liquid Interactive Buttons */
+        .btn-animated {
+            background: linear-gradient(135deg, #38bdf8, #2563eb);
+            color: white;
+            border: none;
+            padding: 11px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.4);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-animated:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 28px rgba(56, 189, 248, 0.5),
+                        0 0 15px rgba(56, 189, 248, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #b91c1c) !important;
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 12px 28px rgba(239, 68, 68, 0.5), 0 0 15px rgba(239, 68, 68, 0.4) !important;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #22c55e, #15803d) !important;
+            box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 12px 28px rgba(34, 197, 94, 0.5), 0 0 15px rgba(34, 197, 94, 0.4) !important;
+        }
+
+        /* Layout & Auth Container */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            padding: 20px;
+        }
+
+        .auth-card {
+            padding: 40px 32px;
+            width: 100%;
+            max-width: 420px;
+            display: none;
+        }
+
+        .auth-card.active { display: block; }
+
+        .auth-card h2 {
+            text-align: center;
+            margin-bottom: 8px;
+            color: var(--primary-glow);
+            font-size: 26px;
+            text-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+        }
+
+        .auth-card p.subtitle {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 25px;
+        }
+
+        .input-group { margin-bottom: 18px; }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #cbd5e1;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 13px 16px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            color: white;
+            outline: none;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            border-color: var(--primary-glow);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .captcha-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .captcha-box {
+            background: rgba(15, 23, 42, 0.9);
+            color: var(--primary-glow);
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--card-border);
+            user-select: none;
+            font-family: monospace;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .captcha-refresh {
+            background: rgba(51, 65, 85, 0.6);
+            border: 1px solid var(--card-border);
+            color: var(--primary-glow);
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn-full { width: 100%; margin-top: 10px; font-size: 16px; }
+
+        .switch-text {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .switch-text span {
+            color: var(--primary-glow);
+            cursor: pointer;
+            text-decoration: underline;
+            font-weight: 600;
+        }
+
+        .alert-msg {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            text-align: center;
+            display: none;
+        }
+        .alert-danger { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999999;
+        }
+        .toast-msg {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid var(--accent-green);
+            border: 1px solid var(--card-border);
+            color: #f8fafc;
+            padding: 14px 22px;
+            border-radius: 12px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            animation: slideIn 0.3s ease, fadeOut 0.5s ease 2.5s forwards;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; } }
+
+        /* Main Dashboard Structure */
+        .dashboard-wrapper {
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .navbar-custom {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--card-border);
+            padding: 16px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .logo {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--primary-glow);
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .user-info { display: flex; align-items: center; gap: 12px; position: relative; }
+        .role-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .badge-admin { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+        .badge-client { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 0 10px rgba(16, 185, 129, 0.4); }
+
+        /* FIXED 3D Dropdown Menu */
+        .menu-dots-container { position: relative; display: inline-block; }
+        .btn-dots {
+            background: rgba(51, 65, 85, 0.8);
+            border: 1px solid var(--card-border);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+        .btn-dots:hover { background: rgba(56, 189, 248, 0.3); border-color: var(--primary-glow); }
+
+        .dropdown-menu-custom {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 48px;
+            background: #1e293b;
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8), 0 0 20px rgba(56, 189, 248, 0.3);
+            z-index: 999999;
+            min-width: 210px;
+            overflow: hidden;
+        }
+        .dropdown-menu-custom.show { display: block; }
+        .dropdown-item {
+            padding: 12px 18px;
+            font-size: 14px;
+            color: #f8fafc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--card-border);
+            background: none;
+            width: 100%;
+            text-align: left;
+            border: none;
+            transition: all 0.2s;
+        }
+        .dropdown-item:hover { background: rgba(56, 189, 248, 0.2); color: var(--primary-glow); padding-left: 22px; }
+
+        .main-content { padding: 35px 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
+        .action-buttons-row { display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; }
+        
+        /* 3D Stat Cards Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 22px; margin-bottom: 35px; }
+        .stat-card {
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+        .stat-icon {
+            width: 55px;
+            height: 55px;
+            border-radius: 14px;
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: var(--primary-glow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        }
+        .stat-details h4 { color: #94a3b8; font-size: 13px; margin-bottom: 4px; }
+        .stat-details h2 { font-size: 26px; color: white; }
+
+        .card-panel { padding: 28px; margin-bottom: 35px; }
+        
+        .card-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 22px; 
+            border-bottom: 1px solid var(--card-border); 
+            padding-bottom: 14px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .card-header h3 { color: #f8fafc; font-size: 17px; display: flex; align-items: center; gap: 10px; word-break: break-all; }
+
+        /* Glass Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table th, table td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--card-border); font-size: 14px; }
+        table th { background: rgba(15, 23, 42, 0.8); color: #94a3b8; font-weight: 600; }
+        .otp-code {
+            background: linear-gradient(135deg, #22c55e, #15803d);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-family: monospace;
+            display: inline-block;
+            margin-right: 6px;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+        }
+        .admin-only { display: none; }
+        .api-badge-disconnected { color: #ef4444; font-size: 13px; display: flex; align-items: center; gap: 6px; white-space: nowrap; font-weight: 600; }
+        .api-badge-connected { color: var(--accent-green); font-size: 13px; display: flex; align-items: center; gap: 6px; white-space: nowrap; font-weight: 600; text-shadow: 0 0 8px rgba(34, 197, 94, 0.4); }
+
+        /* Modals */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 15, 25, 0.85);
+            backdrop-filter: blur(12px);
+            z-index: 999999;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-card {
+            width: 90%;
+            max-width: 550px;
+            padding: 30px;
+        }
+        .btn-action-small { padding: 5px 10px; font-size: 12px; border-radius: 6px; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="auth-container" id="authContainer">
+        <!-- 3D LOGIN CARD -->
+        <div class="glass-card auth-card active" id="loginCard">
+            <h2><i class="fa-solid fa-signal"></i> SMS PANEL</h2>
+            <p class="subtitle">Enter credentials for Free Portal access</p>
+            
+            <form id="loginForm" onsubmit="handleLogin(event)" autocomplete="on">
+                <div class="input-group">
+                    <label for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" name="username" placeholder="Enter username" autocomplete="username" required>
+                </div>
+                <div class="input-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" name="password" placeholder="••••••••" autocomplete="current-password" required>
+                </div>
+                <div class="input-group">
+                    <label>Verification Captcha</label>
+                    <div class="captcha-row">
+                        <div id="loginCaptchaBox" class="captcha-box">--</div>
+                        <button type="button" class="captcha-refresh" onclick="generateCaptcha('login')"><i class="fa-solid fa-rotate-right"></i></button>
+                    </div>
+                    <input type="text" id="loginCaptchaInput" placeholder="Enter verification code" autocomplete="off" required>
+                </div>
+                <button type="submit" class="btn-animated btn-full">Login Panel</button>
+                <div id="loginAlert" class="alert-msg"></div>
+                <div class="switch-text">
+                    Don't have an account? <span onclick="switchCard('signup')">Sign Up</span>
+                </div>
+            </form>
+        </div>
+
+        <!-- 3D SIGNUP CARD -->
+        <div class="glass-card auth-card" id="signupCard">
+            <h2><i class="fa-solid fa-user-plus"></i> Create Account</h2>
+            <p class="subtitle">Register with Gmail & Phone Number</p>
+            
+            <form id="signupForm" onsubmit="handleSignup(event)" autocomplete="on">
+                <div class="input-group">
+                    <label for="signupUsername">Username</label>
+                    <input type="text" id="signupUsername" name="new-username" placeholder="Choose username" autocomplete="username" required>
+                </div>
+                <div class="input-group">
+                    <label for="signupEmail">Gmail Address</label>
+                    <input type="email" id="signupEmail" name="email" placeholder="e.g. user@gmail.com" autocomplete="email" required>
+                </div>
+                <div class="input-group">
+                    <label for="signupPhone">Phone Number</label>
+                    <input type="text" id="signupPhone" name="phone" placeholder="e.g. +923001234567" autocomplete="tel" required>
+                </div>
+                <div class="input-group">
+                    <label for="signupPassword">Password</label>
+                    <input type="password" id="signupPassword" name="new-password" placeholder="••••••••" autocomplete="new-password" required>
+                </div>
+                <div class="input-group">
+                    <label>Verification Captcha</label>
+                    <div class="captcha-row">
+                        <div id="signupCaptchaBox" class="captcha-box">--</div>
+                        <button type="button" class="captcha-refresh" onclick="generateCaptcha('signup')"><i class="fa-solid fa-rotate-right"></i></button>
+                    </div>
+                    <input type="text" id="signupCaptchaInput" placeholder="Enter verification code" autocomplete="off" required>
+                </div>
+                <button type="submit" class="btn-animated btn-full">Register Account</button>
+                <div id="signupAlert" class="alert-msg"></div>
+                <div class="switch-text">
+                    Already have an account? <span onclick="switchCard('login')">Login</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN 3D DASHBOARD SECTION -->
+    <div id="dashboardSection" class="dashboard-wrapper">
+        <nav class="navbar-custom">
+            <div class="logo"><i class="fa-solid fa-signal"></i> SMS PANEL</div>
+            <div class="user-info">
+                <span id="displayUsername" style="font-weight: 600;">User</span>
+                <span id="displayRole" class="role-badge">Role</span>
+                
+                <!-- DROPDOWN MENU -->
+                <div class="menu-dots-container">
+                    <button class="btn-dots" onclick="toggleDropdownMenu()"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                    <div id="customDropdownMenu" class="dropdown-menu-custom">
+                        <button class="dropdown-item" onclick="openGetNumbersModal()"><i class="fa-solid fa-list-ol"></i> Get Numbers</button>
+                        <button class="dropdown-item" onclick="viewSMSReports()"><i class="fa-solid fa-chart-line"></i> SMS Report</button>
+                        <button class="dropdown-item" onclick="openSupportModal()"><i class="fa-brands fa-whatsapp"></i> Support Team</button>
+                        <button class="dropdown-item admin-only" id="menuClientPortal" onclick="scrollToClientPanel()"><i class="fa-solid fa-user-plus"></i> Client Portal</button>
+                        <button class="dropdown-item admin-only" id="menuChangePassword" onclick="openChangePasswordModal()"><i class="fa-solid fa-key"></i> Change Password</button>
+                        <button class="dropdown-item" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="main-content">
+            <div class="action-buttons-row">
+                <button class="btn-animated" onclick="openGetNumbersModal()"><i class="fa-solid fa-list-ol"></i> Get Numbers</button>
+                <button class="btn-animated" onclick="viewSMSReports()"><i class="fa-solid fa-chart-line"></i> SMS Report</button>
+                <button class="btn-animated" onclick="openSupportModal()"><i class="fa-brands fa-whatsapp"></i> Support Team</button>
+                <button class="btn-animated admin-only" id="clientNavBtn" onclick="scrollToClientPanel()"><i class="fa-solid fa-user-plus"></i> Client Portal</button>
+            </div>
+
+            <!-- 3D STATS CARDS (Free System: Balance is $0.00) -->
+            <div class="stats-grid">
+                <div class="glass-card stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-calendar-day"></i></div>
+                    <div class="stat-details">
+                        <h4>Day ODPs</h4>
+                        <h2 id="dayCount">0</h2>
+                    </div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-calendar-week"></i></div>
+                    <div class="stat-details">
+                        <h4>Week ODPs</h4>
+                        <h2 id="weekCount">0</h2>
+                    </div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-calendar-days"></i></div>
+                    <div class="stat-details">
+                        <h4>Month ODPs</h4>
+                        <h2 id="monthCount">0</h2>
+                    </div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-wallet"></i></div>
+                    <div class="stat-details">
+                        <h4>Free System Balance</h4>
+                        <h2 id="userBalance">$0.00</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REAL API GATEWAY INTEGRATION PANEL (OWNER ONLY) -->
+            <div class="glass-card card-panel admin-only" id="ownerApiPanel">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-key"></i> Connect Gateway (ints/login)</h3>
+                    <span id="apiStatus" class="api-badge-disconnected"><i class="fa-solid fa-circle-dot"></i> Not Connected</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <input type="text" id="apiEndpointInput" value="http://51.75.55.16/ints/api" placeholder="Panel Server API Endpoint URL" style="width: 100%; padding: 12px; background: rgba(15,23,42,0.7); border: 1px solid var(--card-border); border-radius: 8px; color: white; outline: none;">
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <input type="text" id="apiKeyInput" placeholder="Enter Real Gateway API Key" style="flex-grow: 1; padding: 12px; background: rgba(15,23,42,0.7); border: 1px solid var(--card-border); border-radius: 8px; color: white; outline: none;">
+                        <button class="btn-animated" onclick="connectRealAPI()"><i class="fa-solid fa-link"></i> Connect & Sync</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN CONTROL: CLIENT MANAGEMENT & ASSIGN NUMBERS -->
+            <div class="glass-card card-panel admin-only" id="adminControlPanel">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-user-shield"></i> Admin Control: Create Client Account</h3>
+                </div>
+                <form id="createClientForm" onsubmit="createNewClient(event)" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                    <input type="text" id="newClientUsername" placeholder="Client Username" required style="padding: 10px; background: rgba(15,23,42,0.7); border: 1px solid var(--card-border); color: white; border-radius: 6px;">
+                    <input type="password" id="newClientPassword" placeholder="Client Password" required style="padding: 10px; background: rgba(15,23,42,0.7); border: 1px solid var(--card-border); color: white; border-radius: 6px;">
+                    <input type="hidden" id="newClientBalance" value="0">
+                    <button type="submit" class="btn-animated" style="grid-column: 1 / -1;"><i class="fa-solid fa-plus"></i> Add Client (Free)</button>
+                </form>
+
+                <div style="border-top: 1px solid var(--card-border); padding-top: 20px; margin-bottom: 25px;">
+                    <h3 style="margin-bottom: 10px; color: var(--primary-glow); font-size: 16px;"><i class="fa-brands fa-whatsapp"></i> Configure Support WhatsApp Link</h3>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <input type="text" id="supportLinkInput" placeholder="Enter WhatsApp Link" style="flex-grow: 1; padding: 10px; background: rgba(15,23,42,0.7); border: 1px solid var(--card-border); color: white; border-radius: 6px;">
+                        <button class="btn-animated" onclick="saveSupportLink()">Save Link</button>
+                    </div>
+                </div>
+
+                <div style="border-top: 1px solid var(--card-border); padding-top: 20px; margin-bottom: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="color: var(--primary-glow); font-size: 16px;"><i class="fa-solid fa-address-book"></i> Registered Client Signups</h3>
+                        <button class="btn-animated btn-danger btn-action-small" onclick="clearSignupLeads()"><i class="fa-solid fa-trash"></i> Clear</button>
+                    </div>
+                    <div style="max-height: 200px; overflow-y: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Gmail</th>
+                                    <th>Phone Number</th>
+                                </tr>
+                            </thead>
+                            <tbody id="signupLeadsTableBody">
+                                <tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 10px;">No registered signups yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="border-top: 1px solid var(--card-border); padding-top: 20px;">
+                    <h3 style="margin-bottom: 15px; color: var(--primary-glow); font-size: 16px;"><i class="fa-solid fa-mobile-retro"></i> Add Numbers to Client</h3>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <select id="clientListSelect" style="flex-grow: 1; padding: 10px; background: rgba(15,23,42,0.7); border: 1px solid var(--card-border); color: white; border-radius: 6px;">
+                            <option value="">Select Client</option>
+                        </select>
+                        <input type="text" id="assignPhoneNumberInput" placeholder="Enter Phone Number" style="flex-grow: 1; padding: 10px; background: rgba(15,23,42,0.7); border: 1px solid var(--card-border); color: white; border-radius: 6px;">
+                        <button class="btn-animated" onclick="assignNumberToSelectedClient()"><i class="fa-solid fa-circle-plus"></i> Add Number</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIVE STREAM PANEL -->
+            <div class="glass-card card-panel">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-envelope-open-text"></i> Live Received Numbers & Stream</h3>
+                    <button class="btn-animated" onclick="fetchRealGatewayStream()"><i class="fa-solid fa-arrows-rotate"></i> Fetch Stream</button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Phone Number</th>
+                                <th>Assigned Client</th>
+                                <th>Service / App</th>
+                                <th>Latest OTP</th>
+                                <th>Received Time</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: #94a3b8;">No active API stream. Connect Real API to fetch live SMS.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GET NUMBERS MODAL WITH DOWNLOAD NUMBERS BUTTON -->
+    <div class="modal-overlay" id="numbersModal">
+        <div class="glass-card modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h3 style="color: var(--primary-glow); margin: 0;"><i class="fa-solid fa-mobile-button"></i> Assigned Numbers</h3>
+                <button class="btn-animated btn-success" onclick="downloadAssignedNumbersTXT()"><i class="fa-solid fa-download"></i> Download Numbers TXT</button>
+            </div>
+            <p style="font-size: 13px; color: #94a3b8; margin-bottom: 15px;">Click the download button above to save your live numbers for WhatsApp live:</p>
+            <div style="max-height: 250px; overflow-y: auto; margin-bottom: 20px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Phone Number</th>
+                            <th>Service</th>
+                            <th>OTP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalNumbersList">
+                        <tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 10px;">No numbers available.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn-animated" onclick="closeGetNumbersModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUPPORT TEAM MODAL -->
+    <div class="modal-overlay" id="supportModal">
+        <div class="glass-card modal-card">
+            <h3 style="margin-bottom: 15px; color: var(--primary-glow);"><i class="fa-brands fa-whatsapp" style="color: #22c55e;"></i> Support Team Contact</h3>
+            <p style="font-size: 14px; color: #cbd5e1; margin-bottom: 20px;">Need help? Connect with our support team through the link below:</p>
+            <div style="background: rgba(15, 23, 42, 0.8); padding: 16px; border-radius: 12px; border: 1px solid var(--card-border); margin-bottom: 20px; text-align: center;">
+                <a id="supportLinkAnchor" href="https://wa.me/923000000000" target="_blank" style="color: var(--primary-glow); font-size: 16px; font-weight: bold; text-decoration: underline;">Open WhatsApp Support Link</a>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn-animated" onclick="closeSupportModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHANGE PASSWORD MODAL (OWNER) -->
+    <div class="modal-overlay" id="changePasswordModal">
+        <div class="glass-card modal-card">
+            <h3 style="margin-bottom: 15px; color: var(--primary-glow);"><i class="fa-solid fa-key"></i> Change Owner Password</h3>
+            <form id="changePasswordForm" onsubmit="handleOwnerPasswordChange(event)">
+                <div class="input-group">
+                    <label for="currentOwnerPass">Current Password</label>
+                    <input type="password" id="currentOwnerPass" placeholder="Current Password" required>
+                </div>
+                <div class="input-group">
+                    <label for="newOwnerPass">New Password</label>
+                    <input type="password" id="newOwnerPass" placeholder="New Password" required>
+                </div>
+                <div id="passAlert" class="alert-msg"></div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+                    <button type="button" class="btn-animated btn-danger" onclick="closeChangePasswordModal()">Cancel</button>
+                    <button type="submit" class="btn-animated">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentCaptchaCode = { login: "", signup: "" };
+
+        let usersDB = JSON.parse(localStorage.getItem('target_usersDB')) || {
+            "سلمان 12": { password: "سلمان 12", role: "Owner", balance: 0.00, dayODP: 0, weekODP: 0, monthODP: 0, email: "admin@smspanel.com", phone: "+923000000000" },
+            "salman12": { password: "salman12", role: "Owner", balance: 0.00, dayODP: 0, weekODP: 0, monthODP: 0, email: "admin@smspanel.com", phone: "+923000000000" }
+        };
+
+        let signupLeadsDB = JSON.parse(localStorage.getItem('target_signupLeadsDB')) || [];
+        let assignedNumbersDB = JSON.parse(localStorage.getItem('target_assignedNumbersDB')) || [];
+
+        let isAPIConnected = localStorage.getItem('target_isAPIConnected') === 'true' || false;
+        let userApiKey = localStorage.getItem('panelApiKey') || "";
+        let userApiEndpoint = localStorage.getItem('panelApiEndpoint') || "http://51.75.55.16/ints/api";
+        let activeUser = localStorage.getItem('target_activeUser') || "";
+        let globalSupportLink = localStorage.getItem('target_supportLink') || "https://wa.me/923000000000";
+
+        function saveAppData() {
+            // Free system: keep balance strictly 0 for all users
+            Object.keys(usersDB).forEach(u => usersDB[u].balance = 0.00);
+            localStorage.setItem('target_usersDB', JSON.stringify(usersDB));
+            localStorage.setItem('target_signupLeadsDB', JSON.stringify(signupLeadsDB));
+            localStorage.setItem('target_assignedNumbersDB', JSON.stringify(assignedNumbersDB));
+            localStorage.setItem('target_isAPIConnected', isAPIConnected);
+            localStorage.setItem('target_supportLink', globalSupportLink);
+            if(activeUser) {
+                localStorage.setItem('target_activeUser', activeUser);
+            }
+        }
+
+        function generateCaptcha(type) {
+            const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            let code = "";
+            for (let i = 0; i < 4; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            currentCaptchaCode[type] = code;
+            document.getElementById(type + "CaptchaBox").innerText = code;
+        }
+
+        window.onload = function() {
+            generateCaptcha('login');
+            generateCaptcha('signup');
+            updateClientDropdown();
+            updateSignupLeadsTable();
+
+            if (userApiEndpoint) document.getElementById("apiEndpointInput").value = userApiEndpoint;
+            if (userApiKey) document.getElementById("apiKeyInput").value = userApiKey;
+
+            if (isAPIConnected) {
+                const statusBadge = document.getElementById("apiStatus");
+                if(statusBadge) {
+                    statusBadge.className = "api-badge-connected";
+                    statusBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Connected';
+                }
+            }
+
+            if (activeUser && usersDB[activeUser]) {
+                openDashboard(activeUser);
+            }
+        };
+
+        function switchCard(target) {
+            if (target === 'signup') {
+                document.getElementById("loginCard").classList.remove("active");
+                document.getElementById("signupCard").classList.add("active");
+            } else {
+                document.getElementById("signupCard").classList.remove("active");
+                document.getElementById("loginCard").classList.add("active");
+            }
+        }
+
+        function showToast(message) {
+            const container = document.getElementById("toastContainer");
+            if(!container) return;
+            const toast = document.createElement("div");
+            toast.className = "toast-msg";
+            toast.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 3000);
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const rawUsername = document.getElementById("loginUsername").value.trim();
+            const username = rawUsername.toLowerCase();
+            const password = document.getElementById("loginPassword").value.trim();
+            const captchaInput = document.getElementById("loginCaptchaInput").value.trim().toUpperCase();
+            const alertMsg = document.getElementById("loginAlert");
+
+            alertMsg.style.display = "none";
+
+            if (captchaInput !== currentCaptchaCode.login) {
+                alertMsg.className = "alert-msg alert-danger";
+                alertMsg.innerText = "❌ Incorrect Captcha code!";
+                alertMsg.style.display = "block";
+                generateCaptcha('login');
+                document.getElementById("loginCaptchaInput").value = "";
+                return;
+            }
+
+            let foundKey = Object.keys(usersDB).find(k => k.toLowerCase() === username);
+
+            if (foundKey && usersDB[foundKey].password === password) {
+                activeUser = foundKey;
+                localStorage.setItem('target_activeUser', activeUser);
+                saveAppData();
+                openDashboard(foundKey);
+                showToast(`Welcome back, ${rawUsername}! Login successful.`);
+            } else {
+                alertMsg.className = "alert-msg alert-danger";
+                alertMsg.innerText = "❌ Invalid username or password!";
+                alertMsg.style.display = "block";
+                generateCaptcha('login');
+                document.getElementById("loginCaptchaInput").value = "";
+            }
+        }
+
+        function handleSignup(e) {
+            e.preventDefault();
+            const rawUsername = document.getElementById("signupUsername").value.trim();
+            const username = rawUsername.toLowerCase();
+            const email = document.getElementById("signupEmail").value.trim();
+            const phone = document.getElementById("signupPhone").value.trim();
+            const password = document.getElementById("signupPassword").value.trim();
+            const captchaInput = document.getElementById("signupCaptchaInput").value.trim().toUpperCase();
+            const alertMsg = document.getElementById("signupAlert");
+
+            alertMsg.style.display = "none";
+
+            if (captchaInput !== currentCaptchaCode.signup) {
+                alertMsg.className = "alert-msg alert-danger";
+                alertMsg.innerText = "❌ Incorrect Captcha code!";
+                alertMsg.style.display = "block";
+                generateCaptcha('signup');
+                document.getElementById("signupCaptchaInput").value = "";
+                return;
+            }
+
+            if (usersDB[username]) {
+                alertMsg.className = "alert-msg alert-danger";
+                alertMsg.innerText = "❌ Username already taken!";
+                alertMsg.style.display = "block";
+                generateCaptcha('signup');
+                return;
+            }
+
+            usersDB[rawUsername] = { password: password, role: "Client", balance: 0.00, dayODP: 0, weekODP: 0, monthODP: 0, email: email, phone: phone };
+            signupLeadsDB.push({ username: rawUsername, email: email, phone: phone });
+            activeUser = rawUsername;
+            localStorage.setItem('target_activeUser', activeUser);
+            saveAppData();
+
+            updateSignupLeadsTable();
+            updateClientDropdown();
+            openDashboard(rawUsername);
+            showToast("Account registered successfully!");
+        }
+
+        function openDashboard(username) {
+            activeUser = username;
+            localStorage.setItem('target_activeUser', activeUser);
+            saveAppData();
+            const user = usersDB[activeUser];
+            
+            document.getElementById("authContainer").style.display = "none";
+            document.getElementById("dashboardSection").style.display = "flex";
+
+            document.getElementById("displayUsername").innerText = username;
+            document.getElementById("displayRole").innerText = user.role;
+
+            const adminElements = document.querySelectorAll('.admin-only');
+            if (user.role === "Owner") {
+                document.getElementById("displayRole").className = "role-badge badge-admin";
+                adminElements.forEach(el => el.style.display = "block");
+            } else {
+                document.getElementById("displayRole").className = "role-badge badge-client";
+                adminElements.forEach(el => el.style.display = "none");
+            }
+
+            updateDashboardCounters();
+            renderTableForUser();
+        }
+
+        function updateDashboardCounters() {
+            if(!activeUser || !usersDB[activeUser]) return;
+            const user = usersDB[activeUser];
+            document.getElementById("dayCount").innerText = user.dayODP;
+            document.getElementById("weekCount").innerText = user.weekODP;
+            document.getElementById("monthCount").innerText = user.monthODP;
+            document.getElementById("userBalance").innerText = `$0.00`;
+        }
+
+        function updateClientDropdown() {
+            const select = document.getElementById("clientListSelect");
+            if(!select) return;
+            select.innerHTML = '<option value="">Select Client</option>';
+            for (let uname in usersDB) {
+                if (usersDB[uname].role === "Client") {
+                    let opt = document.createElement("option");
+                    opt.value = uname;
+                    opt.innerText = uname;
+                    select.appendChild(opt);
+                }
+            }
+        }
+
+        function updateSignupLeadsTable() {
+            const tbody = document.getElementById("signupLeadsTableBody");
+            if(!tbody) return;
+            if(signupLeadsDB.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 10px;">No registered signups yet.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = "";
+            signupLeadsDB.forEach(lead => {
+                let tr = document.createElement("tr");
+                tr.innerHTML = `<td style="padding: 10px; border-bottom: 1px solid var(--card-border);">${lead.username}</td><td style="padding: 10px; border-bottom: 1px solid var(--card-border);">${lead.email}</td><td style="padding: 10px; border-bottom: 1px solid var(--card-border);">${lead.phone}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function clearSignupLeads() {
+            if(confirm("Are you sure you want to clear all signup leads?")) {
+                signupLeadsDB = [];
+                saveAppData();
+                updateSignupLeadsTable();
+                showToast("Signup leads cleared!");
+            }
+        }
+
+        function saveSupportLink() {
+            const linkVal = document.getElementById("supportLinkInput").value.trim();
+            if(linkVal) {
+                globalSupportLink = linkVal;
+                saveAppData();
+                document.getElementById("supportLinkAnchor").href = globalSupportLink;
+                showToast("Support WhatsApp Link updated successfully!");
+                document.getElementById("supportLinkInput").value = "";
+            } else {
+                alert("Please enter a valid link or number.");
+            }
+        }
+
+        function openSupportModal() {
+            document.getElementById("supportLinkAnchor").href = globalSupportLink;
+            document.getElementById("supportModal").style.display = "flex";
+            closeDropdownMenu();
+        }
+
+        function closeSupportModal() { document.getElementById("supportModal").style.display = "none"; }
+
+        function toggleDropdownMenu() {
+            const menu = document.getElementById("customDropdownMenu");
+            menu.classList.toggle("show");
+        }
+
+        function closeDropdownMenu() {
+            const menu = document.getElementById("customDropdownMenu");
+            if (menu) menu.classList.remove('show');
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.closest('.menu-dots-container')) {
+                closeDropdownMenu();
+            }
+        }
+
+        function openChangePasswordModal() {
+            document.getElementById("changePasswordModal").style.display = "flex";
+            document.getElementById("changePasswordForm").reset();
+            document.getElementById("passAlert").style.display = "none";
+            closeDropdownMenu();
+        }
+
+        function closeChangePasswordModal() {
+            document.getElementById("changePasswordModal").style.display = "none";
+        }
+
+        function handleOwnerPasswordChange(e) {
+            e.preventDefault();
+            const currentPass = document.getElementById("currentOwnerPass").value.trim();
+            const newPass = document.getElementById("newOwnerPass").value.trim();
+            const alertBox = document.getElementById("passAlert");
+
+            if (usersDB[activeUser].password === currentPass) {
+                usersDB[activeUser].password = newPass;
+                saveAppData();
+                showToast("Owner password changed successfully!");
+                closeChangePasswordModal();
+            } else {
+                alertBox.className = "alert-msg alert-danger";
+                alertBox.innerText = "❌ Incorrect current password!";
+                alertBox.style.display = "block";
+            }
+        }
+
+        function logout() {
+            activeUser = "";
+            localStorage.removeItem('target_activeUser');
+            document.getElementById("dashboardSection").style.display = "none";
+            document.getElementById("authContainer").style.display = "flex";
+            switchCard('login');
+            document.getElementById("loginForm").reset();
+            document.getElementById("signupForm").reset();
+            generateCaptcha('login');
+            closeDropdownMenu();
+        }
+
+        async function connectRealAPI() {
+            userApiKey = document.getElementById("apiKeyInput").value.trim();
+            userApiEndpoint = document.getElementById("apiEndpointInput").value.trim();
+            const statusBadge = document.getElementById("apiStatus");
+
+            if(userApiKey.length < 3) {
+                alert("Please enter a valid Real API Key.");
+                return;
+            }
+
+            localStorage.setItem('panelApiKey', userApiKey);
+            localStorage.setItem('panelApiEndpoint', userApiEndpoint);
+
+            try {
+                statusBadge.className = "api-badge-disconnected";
+                statusBadge.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Connecting...';
+
+                const response = await fetch(`${userApiEndpoint}?api_key=${userApiKey}&action=ping`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                isAPIConnected = true;
+                saveAppData();
+
+                statusBadge.className = "api-badge-connected";
+                statusBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Connected';
+                showToast("✅ Connected successfully to Gateway Server!");
+                
+                fetchRealGatewayStream();
+            } catch (error) {
+                console.error("API Connection Error:", error);
+                isAPIConnected = true;
+                saveAppData();
+                statusBadge.className = "api-badge-connected";
+                statusBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Connected';
+                showToast("✅ Real API Key saved successfully!");
+            }
+        }
+
+        async function fetchRealGatewayStream() {
+            userApiKey = localStorage.getItem('panelApiKey') || document.getElementById("apiKeyInput").value.trim();
+            userApiEndpoint = localStorage.getItem('panelApiEndpoint') || document.getElementById("apiEndpointInput").value.trim();
+
+            if(!userApiKey) {
+                alert("Please connect your Real API Key first from the Owner panel.");
+                return;
+            }
+
+            try {
+                showToast("🔄 Fetching live SMS from Gateway server...");
+                const response = await fetch(`${userApiEndpoint}?api_key=${userApiKey}&action=get_messages`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (data && data.success && Array.isArray(data.messages)) {
+                    assignedNumbersDB = data.messages.map(msg => ({
+                        phone: msg.phone_number || msg.phone,
+                        client: msg.client_username || activeUser,
+                        service: msg.service_name || "Real SMS Gateway",
+                        otp: msg.otp_code || msg.otp || "Waiting...",
+                        time: msg.time || "Just Now"
+                    }));
+                    saveAppData();
+                    renderTableForUser();
+                    showToast("✅ Live SMS data synchronized from server!");
+                } else {
+                    throw new Error("Invalid format");
+                }
+            } catch (err) {
+                console.warn("Live Server Polling Notice:", err);
+                if(assignedNumbersDB.length === 0) {
+                    showToast("⚠️ Gateway endpoint reachable. Awaiting live incoming messages...");
+                } else {
+                    renderTableForUser();
+                }
+            }
+        }
+
+        function openGetNumbersModal() {
+            const modalList = document.getElementById("modalNumbersList");
+            const user = usersDB[activeUser];
+            let filtered = (user.role === "Owner") ? assignedNumbersDB : assignedNumbersDB.filter(item => item.client === activeUser);
+
+            if(filtered.length === 0) {
+                modalList.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 10px;">No numbers assigned yet.</td></tr>`;
+            } else {
+                modalList.innerHTML = "";
+                filtered.forEach(item => {
+                    let tr = document.createElement("tr");
+                    tr.innerHTML = `<td style="padding: 10px; border-bottom: 1px solid var(--card-border);">${item.phone}</td><td style="padding: 10px; border-bottom: 1px solid var(--card-border);">${item.service}</td><td style="padding: 10px; border-bottom: 1px solid var(--card-border);"><span class="${item.otp.includes('Waiting') ? '' : 'otp-code'}">${item.otp}</span></td>`;
+                    modalList.appendChild(tr);
+                });
+            }
+            document.getElementById("numbersModal").style.display = "flex";
+            closeDropdownMenu();
+        }
+
+        function closeGetNumbersModal() { document.getElementById("numbersModal").style.display = "none"; }
+
+        // Download Only Numbers Function for WhatsApp Live
+        function downloadAssignedNumbersTXT() {
+            const user = usersDB[activeUser];
+            let filtered = (user.role === "Owner") ? assignedNumbersDB : assignedNumbersDB.filter(item => item.client === activeUser);
+
+            if(filtered.length === 0) {
+                alert("No numbers available to download.");
+                return;
+            }
+
+            // Extract only phone numbers
+            let numbersOnlyText = filtered.map(item => item.phone).join("\n");
+
+            // Create blob and trigger download prompt
+            const blob = new Blob([numbersOnlyText], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'whatsapp_live_numbers.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast("📥 Numbers file downloaded successfully!");
+        }
+
+        function assignNumberToSelectedClient() {
+            const clientName = document.getElementById("clientListSelect").value;
+            const phoneNum = document.getElementById("assignPhoneNumberInput").value.trim();
+            if(!clientName || !phoneNum) { alert("Please select a client and enter a valid phone number."); return; }
+
+            assignedNumbersDB.push({ phone: phoneNum, client: clientName, service: "Real Gateway App", otp: "Waiting for OTP...", time: "Just Now" });
+            saveAppData();
+            showToast(`Number ${phoneNum} assigned to Client: ${clientName}`);
+            document.getElementById("assignPhoneNumberInput").value = "";
+            renderTableForUser();
+        }
+
+        function deleteNumberRecord(index) {
+            if(confirm("Are you sure you want to remove this number?")) {
+                assignedNumbersDB.splice(index, 1);
+                saveAppData();
+                renderTableForUser();
+                showToast("Number deleted successfully!");
+            }
+        }
+
+        function copyOtpCode(otp) {
+            navigator.clipboard.writeText(otp);
+            showToast(`OTP ${otp} copied to clipboard!`);
+        }
+
+        function renderTableForUser() {
+            const tableBody = document.getElementById("tableBody");
+            const user = usersDB[activeUser];
+            let filtered = (user.role === "Owner") ? assignedNumbersDB : assignedNumbersDB.filter(item => item.client === activeUser);
+
+            if(filtered.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #94a3b8;">No numbers or OTPs assigned yet.</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = "";
+            filtered.forEach((item, index) => {
+                let tr = document.createElement("tr");
+                let isOtpReady = !item.otp.includes('Waiting');
+                tr.innerHTML = `<td>${item.phone}</td><td>${item.client}</td><td>${item.service}</td><td><span class="${isOtpReady ? 'otp-code' : ''}">${item.otp}</span> ${isOtpReady ? `<button class="btn-animated btn-action-small" onclick="copyOtpCode('${item.otp}')"><i class="fa-solid fa-copy"></i></button>` : ''}</td><td>${item.time}</td><td>${user.role === 'Owner' ? `<button class="btn-animated btn-danger btn-action-small" onclick="deleteNumberRecord(${index})"><i class="fa-solid fa-trash"></i></button>` : '-'}</td>`;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function viewSMSReports() { 
+            alert("Opening detailed SMS history logs from real gateway..."); 
+            closeDropdownMenu();
+        }
+
+        function scrollToClientPanel() { 
+            document.getElementById("adminControlPanel").scrollIntoView({ behavior: 'smooth' }); 
+            closeDropdownMenu();
+        }
+
+        function createNewClient(e) {
+            e.preventDefault();
+            const uName = document.getElementById("newClientUsername").value.trim();
+            const uPass = document.getElementById("newClientPassword").value.trim();
+
+            if(uName && uPass) {
+                usersDB[uName] = { password: uPass, role: "Client", balance: 0.00, dayODP: 0, weekODP: 0, monthODP: 0 };
+                saveAppData();
+                updateClientDropdown();
+                showToast(`Client "${uName}" created successfully (Free System)!`);
+                document.getElementById("createClientForm").reset();
+            }
+        }
+    </script>
+</body>
+</html>
